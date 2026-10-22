@@ -1,0 +1,17 @@
+[Unit]
+Description=Proxy-dash monitor 9router :20129 (port 20130) + journal log bridge
+After=network-online.target 9router-20129.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=vidh-compaq
+WorkingDirectory=/home/vidh-compaq/projects/proxy
+ExecStartPre=/bin/sh -c 'journalctl -u 9router-20129 --no-pager -o cat > /home/vidh-compaq/projects/proxy/logs/9router-20129.log'
+ExecStart=/bin/sh -c 'journalctl -u 9router-20129 -f -o cat >> /home/vidh-compaq/projects/proxy/logs/9router-20129.log & echo $! > /tmp/proxydash-journal.pid; exec /usr/bin/python3 /home/vidh-compaq/projects/proxy/proxy-dash.py'
+ExecStopPost=/bin/sh -c 'kill $(cat /tmp/proxydash-journal.pid 2>/dev/null) 2>/dev/null; rm -f /tmp/proxydash-journal.pid'
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
